@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Encuesta Empresarial — C.E. Alejandro de Humboldt</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,700&family=Syne:wght@400;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:#f7f4ef;color:#0f0e0d;min-height:100vh;}
+.fsyne{font-family:'Syne',sans-serif;}
+@keyframes up{from{opacity:0;transform:translateY(28px);}to{opacity:1;transform:translateY(0);}}
+@keyframes pd{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.5);opacity:0.5;}}
+.aup{animation:up 0.42s cubic-bezier(0.16,1,0.3,1) forwards;}
+.opt{display:flex;align-items:center;gap:12px;width:100%;padding:13px 18px;background:white;border:1.5px solid #e8e2d9;border-radius:14px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:15px;text-align:left;color:#0f0e0d;transition:all 0.18s;}
+.opt:hover{border-color:#2563eb;background:#eff6ff;transform:translateX(3px);}
+.opt.sel{border-color:#2563eb;background:#dbeafe;color:#1d4ed8;font-weight:500;}
+.olet{width:30px;height:30px;border-radius:8px;background:#f0ebe4;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;flex-shrink:0;transition:all 0.18s;color:#6b7280;}
+.opt.sel .olet{background:#2563eb;color:white;}
+.opt:hover .olet{background:#bfdbfe;color:#1d4ed8;}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:8px 16px;border-radius:99px;font-size:14px;font-weight:500;cursor:pointer;border:1.5px solid #e8e2d9;background:white;transition:all 0.18s;color:#0f0e0d;}
+.chip:hover{border-color:#2563eb;background:#eff6ff;}
+.chip.sel{background:#dbeafe;border-color:#2563eb;color:#1d4ed8;}
+.inp{width:100%;padding:13px 16px;background:white;border:1.5px solid #e8e2d9;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:15px;color:#0f0e0d;outline:none;transition:border-color 0.2s;}
+.inp:focus{border-color:#2563eb;}
+textarea.inp{min-height:90px;resize:vertical;}
+.btnm{background:#0f0e0d;color:white;padding:13px 28px;border-radius:99px;font-family:'Syne',sans-serif;font-weight:700;font-size:15px;cursor:pointer;border:none;transition:all 0.2s;display:inline-flex;align-items:center;gap:8px;}
+.btnm:hover{background:#2563eb;transform:translateY(-2px);}
+.btnm:disabled{background:#d1d5db;cursor:not-allowed;transform:none;}
+.btng{background:transparent;color:#6b7280;padding:9px 18px;border-radius:99px;font-size:13px;cursor:pointer;border:1.5px solid #e8e2d9;transition:all 0.2s;font-family:'DM Sans',sans-serif;}
+.btng:hover{color:#0f0e0d;border-color:#9ca3af;background:white;}
+.secbadge{display:inline-flex;align-items:center;background:#0f0e0d;color:white;padding:3px 11px;border-radius:99px;font-size:11px;font-weight:700;letter-spacing:0.07em;font-family:'Syne',sans-serif;text-transform:uppercase;}
+.prog{transition:width 0.5s cubic-bezier(0.16,1,0.3,1);}
+.dot{width:7px;height:7px;border-radius:99px;background:#d1d5db;display:inline-block;transition:all 0.3s;cursor:pointer;}
+.dot.act{width:22px;background:#2563eb;}
+.dot.dn{background:#93c5fd;}
+.rcard{background:white;border:1px solid #e8e2d9;border-radius:16px;padding:18px 20px;transition:all 0.2s;margin-bottom:10px;}
+.rcard:hover{border-color:#93c5fd;box-shadow:0 4px 20px rgba(37,99,235,0.07);}
+.sov{position:fixed;inset:0;background:rgba(247,244,239,0.94);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:16px;}
+.pdot{width:11px;height:11px;border-radius:50%;background:#2563eb;animation:pd 1.4s ease-in-out infinite;display:inline-block;}
+#pdfArea{display:none;}
+</style>
+</head>
+<body>
+
+<div class="sov" id="sov" style="display:none;">
+  <div style="display:flex;gap:9px;">
+    <span class="pdot" style="animation-delay:0s"></span>
+    <span class="pdot" style="animation-delay:0.2s"></span>
+    <span class="pdot" style="animation-delay:0.4s"></span>
+  </div>
+  <p class="fsyne" style="font-size:18px;font-weight:700;" id="sovMsg">Guardando...</p>
+  <p style="font-size:13px;color:#6b7280;" id="sovSub"></p>
+</div>
+
+<div id="app">
+
+<header style="position:sticky;top:0;z-index:50;background:rgba(247,244,239,0.93);backdrop-filter:blur(8px);border-bottom:1px solid #e8e2d9;">
+  <div style="max-width:620px;margin:0 auto;padding:10px 18px;display:flex;align-items:center;justify-content:space-between;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <img src="logo/logo.png" style="width:40px;height:40px;object-fit:contain;mix-blend-mode:multiply;" alt="CEAH">
+      <img src="logo/2logo.png" style="width:40px;height:40px;object-fit:contain;mix-blend-mode:multiply;" alt="DS">
+      <div>
+        <p class="fsyne" style="font-weight:700;font-size:13px;line-height:1.2;color:#0f0e0d;">C.E. Alejandro de Humboldt</p>
+        <p style="font-size:10px;color:#6b7280;">BTV en Desarrollo de Software</p>
+      </div>
+    </div>
+    <button class="btng" style="font-size:12px;padding:7px 13px;" onclick="showPanel()">Respuestas</button>
+  </div>
+  <div style="height:3px;background:#e8e2d9;" id="progWrap" style="display:none;">
+    <div class="prog" id="progBar" style="height:3px;background:#2563eb;width:0%;"></div>
+  </div>
+</header>
+
+<main id="mainArea" style="min-height:calc(100vh - 64px);display:flex;align-items:center;justify-content:center;padding:28px 18px;">
+
+  <div id="landing" class="aup" style="max-width:500px;width:100%;text-align:center;">
+    <div style="display:flex;justify-content:center;gap:18px;margin-bottom:22px;">
+      <img src="logo/logo.png" style="width:76px;height:76px;object-fit:contain;mix-blend-mode:multiply;" alt="CEAH">
+      <img src="logo/2logo.png" style="width:76px;height:76px;object-fit:contain;mix-blend-mode:multiply;" alt="DS">
+    </div>
+    <span class="secbadge" style="margin-bottom:14px;display:inline-flex;">Investigación 2025</span>
+    <h1 style="font-family:'Playfair Display',serif;font-size:42px;font-weight:800;line-height:1.12;margin:14px 0 15px;letter-spacing:-0.5px;">Diagnóstico<br><span style="color:#2563eb;font-style:italic;">Empresarial</span></h1>
+    <p style="color:#6b7280;font-size:15px;line-height:1.7;max-width:400px;margin:0 auto 24px;">
+      Investigación del <strong>Complejo Educativo Alejandro de Humboldt</strong>. Tus respuestas son confidenciales y toman aproximadamente <strong>7 minutos</strong>.
+    </p>
+
+    <button class="btnm" style="width:100%;justify-content:center;" onclick="startSurvey()">Comenzar encuesta →</button>
+  </div>
+
+  <div id="qScreen" style="max-width:550px;width:100%;display:none;"></div>
+
+  <div id="okScreen" class="aup" style="max-width:480px;width:100%;text-align:center;display:none;">
+    <div style="font-size:60px;margin-bottom:18px;">✅</div>
+    <h2 class="fsyne" style="font-size:30px;font-weight:800;margin-bottom:10px;">¡Encuesta completada!</h2>
+    <p style="color:#6b7280;margin-bottom:26px;font-size:15px;">Los datos fueron enviados a Google Sheets y guardados localmente.</p>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button class="btnm" style="width:100%;justify-content:center;" onclick="newSurvey()">Nueva encuesta →</button>
+      <button class="btng" style="width:100%;" onclick="showPanel()">Ver todas las respuestas</button>
+    </div>
+  </div>
+
+</main>
+
+<div id="panelScreen" style="display:none;max-width:680px;margin:0 auto;padding:28px 18px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+    <div>
+      <h2 class="fsyne" style="font-size:24px;font-weight:800;">Respuestas <span id="cnt" style="color:#2563eb;"></span></h2>
+      <p style="font-size:13px;color:#6b7280;">Guardadas en este dispositivo</p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btng" style="font-size:12px;" onclick="exportExcel()">📥 Excel</button>
+      <button class="btng" style="font-size:12px;" onclick="exportPDF()">📄 PDF</button>
+      <button class="btng" style="font-size:12px;" onclick="showLanding()">+ Nueva</button>
+    </div>
+  </div>
+  <div id="panelList"></div>
+</div>
+
+</div>
+
+<div id="pdfArea"></div>
+
+<script>
+const SURL = "https://script.google.com/macros/s/AKfycbwRKVxYI_0nPkFeDo4fJhNaduF8h-DiO1NtP57y-mME0KKhGZeOzivh0KLj4OUF4Kqi/exec";
+const SK = "humboldt_enc_v4";
+const LL = ['A','B','C','D','E','F','G','H','I','J'];
+let ans={}, step=0, steps=[];
+
+function buildSteps(a){
+  const s=[];
+  // A
+  s.push({id:'empresa',sec:'A',lbl:'Datos generales',type:'text',q:'¿Cuál es el nombre de la empresa o negocio?'});
+  s.push({id:'tipo',sec:'A',lbl:'Datos generales',type:'single',q:'¿Cuál es el tipo de empresa?',opts:['Comercial','Servicios','Producción','Otro']});
+  if(a.tipo==='Otro') s.push({id:'tipo_otro',sec:'A',lbl:'Datos generales',type:'text',q:'Especifica el tipo de empresa:'});
+  s.push({id:'tamano',sec:'A',lbl:'Datos generales',type:'single',q:'¿Cuál es el tamaño de la empresa?',opts:['Micro (1–10 empleados)','Pequeña (11–50)','Mediana (51–200)','Grande (200+)']});
+  s.push({id:'sucursales',sec:'A',lbl:'Datos generales',type:'single',q:'¿Cuántas sucursales tiene?',opts:['1','2','3','4','5 o más']});
+  if(a.sucursales==='5 o más') s.push({id:'suc_num',sec:'A',lbl:'Datos generales',type:'text',q:'Especifica el número de sucursales:'});
+  s.push({id:'anos',sec:'A',lbl:'Datos generales',type:'single',q:'¿Cuántos años lleva en operación?',opts:['Menos de 1 año','1–5 años','Más de 5 años']});
+  s.push({id:'empleados',sec:'A',lbl:'Datos generales',type:'single',q:'¿Cuántos empleados tiene aproximadamente?',opts:['1–5','6–10','11–25','Más de 25']});
+  // B
+  s.push({id:'usa_tech',sec:'B',lbl:'Uso de tecnología',type:'single',q:'¿Utiliza algún sistema, programa o aplicación para administrar su negocio?',opts:['Sí','No','Muy poco']});
+  const t=a.usa_tech;
+  if(t==='No'||t==='Muy poco'){
+    s.push({id:'control',sec:'C1',lbl:'Sin sistema digital',type:'single',q:'¿Cómo lleva el control de su negocio actualmente?',opts:['Cuaderno','Excel básico','De memoria','Otro']});
+    if(a.control==='Otro') s.push({id:'control_otro',sec:'C1',lbl:'Sin sistema digital',type:'text',q:'Describe cómo llevas el control:'});
+    s.push({id:'c1_dificil',sec:'C1',lbl:'Sin sistema digital',type:'textarea',q:'¿Qué es lo más difícil al manejar su negocio actualmente?'});
+    s.push({id:'errores',sec:'C1',lbl:'Sin sistema digital',type:'single',q:'¿Ha tenido errores por llevar registros manuales?',opts:['Sí','No']});
+    s.push({id:'pierde_tiempo',sec:'C1',lbl:'Sin sistema digital',type:'single',q:'¿Pierde tiempo buscando información (clientes, ventas, productos)?',opts:['Sí','No']});
+    s.push({id:'perdio_ventas',sec:'C1',lbl:'Sin sistema digital',type:'single',q:'¿Ha perdido ventas por falta de organización o seguimiento?',opts:['Sí','No','No estoy seguro/a']});
+    s.push({id:'quiere_herramienta',sec:'C1',lbl:'Sin sistema digital',type:'single',q:'¿Le gustaría tener una herramienta sencilla para organizar su negocio?',opts:['Sí','No','Tal vez']});
+    s.push({id:'mejorar_primero',sec:'C1',lbl:'Sin sistema digital',type:'single',q:'¿Qué le gustaría mejorar primero en su negocio?',opts:['Ventas','Control de clientes','Inventario','Organización general']});
+    s.push({id:'usaria_app',sec:'C1',lbl:'Sin sistema digital',type:'single',q:'¿Estaría dispuesto/a a usar una aplicación en celular o computadora?',opts:['Sí','No','Tal vez']});
+  }
+  if(t==='Sí'){
+    s.push({id:'tipo_sistema',sec:'C2',lbl:'Ya usa tecnología',type:'single',q:'¿Qué tipo de sistema utiliza para administrar su negocio?',opts:['Personalizado (hecho a medida para su empresa)','Suscripción (pago mensual/anual a una empresa)','Descargado / gratuito','Excel avanzado','Aplicación móvil','Otro']});
+    if(a.tipo_sistema==='Personalizado (hecho a medida para su empresa)'||a.tipo_sistema==='Suscripción (pago mensual/anual a una empresa)'||a.tipo_sistema==='Descargado / gratuito'||a.tipo_sistema==='Aplicación móvil')
+      s.push({id:'nombre_sistema',sec:'C2',lbl:'Ya usa tecnología',type:'text',q:'¿Cómo se llama el sistema que utiliza?'});
+    if(a.tipo_sistema==='Otro') s.push({id:'sistema_otro',sec:'C2',lbl:'Ya usa tecnología',type:'text',q:'¿Qué sistema usa? Descríbelo:'});
+    s.push({id:'capacitacion',sec:'C2',lbl:'Ya usa tecnología',type:'single',q:'¿Le enseñaron o capacitaron cómo usar el sistema?',opts:['Sí, recibí capacitación completa','Me explicaron lo básico','No, lo aprendí solo/a','No, casi no lo entiendo bien']});
+    s.push({id:'funciones',sec:'C2',lbl:'Ya usa tecnología',type:'multi',q:'¿Qué funciones del sistema utiliza actualmente? (puedes elegir varias)',opts:['Ventas / facturación','Control de inventario','Registro de clientes','Reportes y estadísticas','Cuentas por cobrar/pagar','Nómina de empleados','Control de compras','Otra']});
+    s.push({id:'funciona_bien',sec:'C2',lbl:'Ya usa tecnología',type:'single',q:'¿El sistema que utiliza le funciona bien?',opts:['Sí, muy bien','Más o menos','No, tiene problemas']});
+    s.push({id:'c2_problemas',sec:'C2',lbl:'Ya usa tecnología',type:'textarea',q:'¿Qué problemas tiene con el sistema actual?'});
+    s.push({id:'c2_faltante',sec:'C2',lbl:'Ya usa tecnología',type:'textarea',q:'¿Hay algo que le gustaría que el sistema hiciera y no hace?'});
+    s.push({id:'cambiaria',sec:'C2',lbl:'Ya usa tecnología',type:'single',q:'¿Cambiaría a una mejor herramienta si fuera más fácil de usar?',opts:['Sí','No','Tal vez']});
+    s.push({id:'valora_mas',sec:'C2',lbl:'Ya usa tecnología',type:'single',q:'¿Qué valora más en una herramienta de gestión?',opts:['Facilidad de uso','Precio accesible','Rapidez','Acceso desde celular','Soporte técnico']});
+  }
+  // D
+  s.push({id:'usa_redes',sec:'D',lbl:'Marketing digital',type:'single',q:'¿Utiliza redes sociales para promocionar su negocio?',opts:['Sí','No']});
+  if(a.usa_redes==='Sí'){
+    s.push({id:'redes',sec:'D',lbl:'Marketing digital',type:'multi',q:'¿Qué redes sociales utiliza? (puedes elegir varias)',opts:['Facebook','Instagram','WhatsApp','TikTok','YouTube','Otra']});
+    s.push({id:'freq_publica',sec:'D',lbl:'Marketing digital',type:'single',q:'¿Con qué frecuencia publica contenido?',opts:['Diario','Varias veces por semana','A veces','Casi nunca']});
+  }
+  s.push({id:'tiene_web',sec:'D',lbl:'Marketing digital',type:'single',q:'¿Cuenta con sitio web propio?',opts:['Sí','No','En proceso']});
+  s.push({id:'publicidad_pagada',sec:'D',lbl:'Marketing digital',type:'single',q:'¿Ha realizado publicidad pagada en internet (Facebook Ads, Google Ads)?',opts:['Sí','No']});
+  s.push({id:'digital_ventas',sec:'D',lbl:'Marketing digital',type:'single',q:'¿Cree que los medios digitales podrían aumentar sus ventas?',opts:['Sí, definitivamente','Tal vez','No estoy seguro/a']});
+  s.push({id:'d_dificultad',sec:'D',lbl:'Marketing digital',type:'textarea',q:'¿Cuál es la mayor dificultad que tiene con el marketing digital?'});
+  s.push({id:'ayuda_digital',sec:'D',lbl:'Marketing digital',type:'single',q:'¿Le gustaría recibir ayuda para mejorar su presencia en internet?',opts:['Sí','No','Tal vez']});
+  // E
+  s.push({id:'mayor_problema',sec:'E',lbl:'Necesidades y oportunidades',type:'textarea',q:'¿Cuál es el mayor problema que tiene actualmente en su negocio?'});
+  s.push({id:'mejorar_uno',sec:'E',lbl:'Necesidades y oportunidades',type:'textarea',q:'Si pudiera mejorar una sola cosa en su negocio, ¿cuál sería?'});
+  s.push({id:'invertiria',sec:'E',lbl:'Necesidades y oportunidades',type:'single',q:'¿Estaría dispuesto/a a invertir en una solución que le ahorre tiempo o aumente sus ventas?',opts:['Sí, definitivamente','Tal vez, dependiendo del costo','No por ahora']});
+  // F
+  s.push({id:'conclusion',sec:'F',lbl:'Conclusión de la entrevista',type:'textarea',q:'Para cerrar: ¿Qué mensaje o comentario final le gustaría compartir sobre las necesidades de su negocio?'});
+  s.push({id:'recomendaria',sec:'F',lbl:'Conclusión de la entrevista',type:'single',q:'¿Recomendaría a otros empresarios participar en este tipo de investigación?',opts:['Sí, con gusto','Tal vez','No']});
+  s.push({id:'contacto_sig',sec:'F',lbl:'Conclusión de la entrevista',type:'single',q:'¿Estaría dispuesto/a a ser contactado/a para una entrevista de seguimiento?',opts:['Sí','No','Tal vez']});
+  if(a.contacto_sig==='Sí'||a.contacto_sig==='Tal vez')
+    s.push({id:'contacto_dato',sec:'F',lbl:'Conclusión de la entrevista',type:'text',q:'¿Cómo podemos contactarle? (teléfono, correo o WhatsApp):'});
+  return s;
+}
+
+function startSurvey(){
+  ans={}; step=0; steps=buildSteps(ans);
+  show('qScreen'); hide('landing'); hide('okScreen'); hide('panelScreen');
+  document.getElementById('mainArea').style.display='flex';
+  document.getElementById('progWrap').style.display='block';
+  renderQ();
+}
+
+function renderQ(){
+  steps=buildSteps(ans);
+  if(step>=steps.length){finishSurvey();return;}
+  const st=steps[step], total=steps.length;
+  document.getElementById('progBar').style.width=Math.round((step/total)*100)+'%';
+  const ms=Array.isArray(ans[st.id])?ans[st.id]:(ans[st.id]?[ans[st.id]]:[]);
+  let oh='';
+  if(st.type==='single'){
+    oh='<div style="display:flex;flex-direction:column;gap:9px;margin-bottom:22px;">'+
+      st.opts.map((o,i)=>`<button class="opt ${ans[st.id]===o?'sel':''}" onclick="pick('${st.id}','${o.replace(/'/g,"\\'").replace(/\(/g,'\\(').replace(/\)/g,'\\)')}')"><span class="olet">${LL[i]}</span><span>${o}</span></button>`).join('')+
+      '</div>';
+  } else if(st.type==='multi'){
+    oh='<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:22px;">'+
+      st.opts.map(o=>`<button class="chip ${ms.includes(o)?'sel':''}" onclick="togChip('${st.id}','${o.replace(/'/g,"\\'")}')"><span>${ms.includes(o)?'✓ ':''}</span>${o}</button>`).join('')+
+      '</div>';
+  } else if(st.type==='textarea'){
+    oh=`<div style="margin-bottom:22px;"><textarea class="inp" id="inp" placeholder="Escribe aquí...">${ans[st.id]||''}</textarea></div>`;
+  } else {
+    oh=`<div style="margin-bottom:22px;"><input class="inp" id="inp" type="text" placeholder="Escribe aquí..." value="${ans[st.id]||''}"></div>`;
+  }
+
+  const secC={'A':'#dbeafe,#1d4ed8','B':'#fef3c7,#92400e','C1':'#fee2e2,#991b1b','C2':'#dcfce7,#166534','D':'#ede9fe,#5b21b6','E':'#fce7f3,#9d174d','F':'#f0fdf4,#14532d'};
+  const isText=st.type==='textarea'||st.type==='text';
+  const canNext=isText||!!ans[st.id];
+
+  document.getElementById('qScreen').innerHTML=`
+    <div class="aup">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+        <span class="secbadge">Sección ${st.sec}</span>
+        <span style="font-size:12px;color:#6b7280;font-weight:500;">${st.lbl}</span>
+      </div>
+      <h2 class="fsyne" style="font-size:22px;font-weight:700;line-height:1.38;margin-bottom:8px;">${st.q}</h2>
+      <p style="font-size:13px;color:#9ca3af;margin-bottom:20px;">${step+1} de ${total} preguntas</p>
+      ${oh}
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        ${step>0?`<button class="btng" onclick="prevQ()">← Atrás</button>`:''}
+        <button class="btnm" id="btnN" onclick="nextQ()" ${canNext?'':'disabled'}>${step===total-1?'Finalizar ✓':'Siguiente →'}</button>
+        ${isText&&step<total-1?`<button class="btng" onclick="skipQ()">Omitir</button>`:''}
+      </div>
+      <div style="display:flex;gap:5px;margin-top:18px;flex-wrap:wrap;">
+        ${steps.map((_,i)=>`<span class="dot ${i===step?'act':i<step?'dn':''}" onclick="jumpTo(${i})"></span>`).join('')}
+      </div>
+    </div>`;
+  if(isText){
+    const el=document.getElementById('inp');
+    if(el){el.addEventListener('input',()=>{document.getElementById('btnN').disabled=false;});el.focus();}
+  }
+}
+
+function pick(id,val){
+  ans[id]=val; steps=buildSteps(ans); renderQ();
+  setTimeout(()=>{if(step<steps.length-1)nextQ();},320);
+}
+function togChip(id,val){
+  if(!ans[id])ans[id]=[];
+  const arr=Array.isArray(ans[id])?ans[id]:[ans[id]];
+  const i=arr.indexOf(val);
+  if(i>-1)arr.splice(i,1);else arr.push(val);
+  ans[id]=arr;
+  document.getElementById('btnN').disabled=arr.length===0;
+  renderQ();
+}
+function nextQ(){
+  const st=steps[step],el=document.getElementById('inp');
+  if(el)ans[st.id]=el.value.trim();
+  if(Array.isArray(ans[st.id]))ans[st.id]=ans[st.id].join(', ');
+  step++; steps=buildSteps(ans);
+  if(step>=steps.length){finishSurvey();return;}
+  renderQ(); window.scrollTo({top:0,behavior:'smooth'});
+}
+function skipQ(){step++;steps=buildSteps(ans);if(step>=steps.length){finishSurvey();return;}renderQ();window.scrollTo({top:0,behavior:'smooth'});}
+function prevQ(){if(step>0){step--;renderQ();window.scrollTo({top:0,behavior:'smooth'});}}
+function jumpTo(i){if(i<=step){step=i;renderQ();}}
+
+async function finishSurvey(){
+  hide('qScreen'); document.getElementById('progWrap').style.display='none';
+  const rec={fecha:new Date().toLocaleDateString('es-SV'),hora:new Date().toLocaleTimeString('es-SV'),...ans};
+  const saved=getLocal(); saved.push(rec); localStorage.setItem(SK,JSON.stringify(saved));
+  sovShow('Enviando a Google Sheets...','Empresa: '+(rec.empresa||'—'));
+  try{
+    await fetch(SURL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(rec)});
+    sovShow('¡Enviado exitosamente! ✓','Datos guardados en Google Sheets');
+  }catch(e){sovShow('Guardado localmente','Sin conexión — intente sincronizar después');}
+  await sleep(1400); sovHide();
+  document.getElementById('mainArea').style.display='flex';
+  show('okScreen');
+}
+
+function sovShow(m,s){document.getElementById('sovMsg').textContent=m;document.getElementById('sovSub').textContent=s||'';document.getElementById('sov').style.display='flex';}
+function sovHide(){document.getElementById('sov').style.display='none';}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+function getLocal(){try{return JSON.parse(localStorage.getItem(SK)||'[]');}catch{return[];}}
+function show(id){document.getElementById(id).style.display='block';}
+function hide(id){document.getElementById(id).style.display='none';}
+function newSurvey(){hide('okScreen');startSurvey();}
+
+function showLanding(){
+  hide('panelScreen'); hide('qScreen'); hide('okScreen');
+  document.getElementById('mainArea').style.display='flex';
+  show('landing');
+  document.getElementById('progWrap').style.display='none';
+}
+
+function showPanel(){
+  document.getElementById('mainArea').style.display='none';
+  hide('landing'); hide('qScreen'); hide('okScreen');
+  show('panelScreen');
+  const data=getLocal();
+  document.getElementById('cnt').textContent='('+data.length+')';
+  const list=document.getElementById('panelList');
+  if(!data.length){list.innerHTML='<div style="text-align:center;color:#9ca3af;padding:60px 0;font-size:14px;">Aún no hay respuestas guardadas.</div>';return;}
+  list.innerHTML=data.slice().reverse().map((r,i)=>{
+    const ri=data.length-1-i;
+    const tc=r.usa_tech==='Sí'?'#dcfce7,#166534':r.usa_tech==='No'?'#fee2e2,#991b1b':'#fef3c7,#92400e';
+    const [tb,tt]=tc.split(',');
+    return `<div class="rcard">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+          <p class="fsyne" style="font-weight:700;font-size:15px;">${r.empresa||'Sin nombre'}</p>
+          <p style="font-size:12px;color:#9ca3af;margin-top:3px;">${r.fecha} · ${r.tipo||r.tipo_otro||'—'} · ${r.tamano||'—'}</p>
+          <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
+            <span style="font-size:11px;font-weight:600;padding:3px 10px;border-radius:99px;background:${tb};color:${tt};">Tecnología: ${r.usa_tech||'—'}</span>
+            ${r.tipo_sistema?`<span style="font-size:11px;font-weight:600;padding:3px 10px;border-radius:99px;background:#f3f4f6;color:#374151;">${r.tipo_sistema.split(' ')[0]}</span>`:''}
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <button class="btng" style="font-size:12px;padding:6px 12px;" onclick="togDet(${ri})">Ver</button>
+          <button onclick="delRec(${ri})" style="background:none;border:none;cursor:pointer;color:#d1d5db;font-size:20px;line-height:1;">×</button>
+        </div>
+      </div>
+      <div id="det-${ri}" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid #f5f2ee;">
+        ${Object.entries(r).filter(([,v])=>v).map(([k,v])=>`
+          <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #faf8f5;font-size:13px;">
+            <span style="color:#9ca3af;text-transform:capitalize;min-width:130px;flex-shrink:0;">${k.replace(/_/g,' ')}</span>
+            <span style="font-weight:500;text-align:right;max-width:55%;">${v}</span>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function togDet(i){const el=document.getElementById('det-'+i);if(el)el.style.display=el.style.display==='none'?'block':'none';}
+function delRec(i){if(!confirm('¿Eliminar esta respuesta?'))return;const d=getLocal();d.splice(i,1);localStorage.setItem(SK,JSON.stringify(d));showPanel();}
+
+function exportExcel(){
+  const data=getLocal();if(!data.length){alert('No hay datos aún.');return;}
+  const keys=[...new Set(data.flatMap(r=>Object.keys(r)))];
+  const ws=XLSX.utils.aoa_to_sheet([keys,...data.map(r=>keys.map(k=>r[k]||''))]);
+  ws['!cols']=keys.map(()=>({wch:24}));
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Encuestas');
+  XLSX.writeFile(wb,`encuestas_humboldt_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+
+function exportPDF(){
+  const data=getLocal();if(!data.length){alert('No hay datos aún.');return;}
+  const area=document.getElementById('pdfArea');
+  area.style.display='block';
+  area.innerHTML=`<div style="font-family:'DM Sans',sans-serif;padding:36px;max-width:720px;margin:0 auto;color:#0f0e0d;">
+    <div style="text-align:center;margin-bottom:32px;border-bottom:2px solid #e8e2d9;padding-bottom:24px;">
+      <p style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:4px;">Encuestas Empresariales — Diagnóstico 2025</p>
+      <p style="font-size:12px;color:#6b7280;">C.E. Alejandro de Humboldt · BTV Desarrollo de Software · ${new Date().toLocaleDateString('es-SV')}</p>
+    </div>
+    ${data.map((r,idx)=>`
+      <div style="border:1px solid #e8e2d9;border-radius:12px;padding:20px;margin-bottom:20px;page-break-inside:avoid;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+          <div>
+            <p style="font-family:'Syne',sans-serif;font-weight:800;font-size:15px;">${idx+1}. ${r.empresa||'Sin nombre'}</p>
+            <p style="font-size:11px;color:#9ca3af;">${r.fecha} ${r.hora||''} · ${r.tipo||r.tipo_otro||'—'} · ${r.tamano||'—'}</p>
+          </div>
+          <span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px;background:${r.usa_tech==='Sí'?'#dcfce7':'#fee2e2'};color:${r.usa_tech==='Sí'?'#166534':'#991b1b'};">Tech: ${r.usa_tech||'—'}</span>
+        </div>
+        <table style="width:100%;border-collapse:collapse;font-size:11.5px;">
+          ${Object.entries(r).filter(([k,v])=>v&&k!=='empresa'&&k!=='fecha'&&k!=='hora').map(([k,v])=>`
+            <tr style="border-bottom:1px solid #f5f2ee;">
+              <td style="padding:4px 8px 4px 0;color:#9ca3af;width:36%;text-transform:capitalize;">${k.replace(/_/g,' ')}</td>
+              <td style="padding:4px 0;font-weight:500;">${v}</td>
+            </tr>`).join('')}
+        </table>
+      </div>`).join('')}
+  </div>`;
+  html2pdf().set({margin:0,filename:`encuestas_humboldt_${new Date().toISOString().slice(0,10)}.pdf`,html2canvas:{scale:2},jsPDF:{format:'a4',orientation:'portrait'}})
+    .from(area).save().then(()=>{area.style.display='none';});
+}
+</script>
+</body>
+</html>
